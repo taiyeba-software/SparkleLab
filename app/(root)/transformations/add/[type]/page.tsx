@@ -1,11 +1,8 @@
 import Header from '@/components/shared/Header'
 import TransformationForm from '@/components/shared/TransformationForm';
 import { transformationTypes } from '@/constants'
-import { getUserById } from '@/lib/actions/user.actions';
-//import { auth } from '@clerk/nextjs';
-import { auth } from "@clerk/nextjs/server";
-
-
+import { getOrCreateUser } from '@/lib/actions/user.actions';
+import { auth, currentUser } from "@clerk/nextjs/server";
 
 import { redirect } from 'next/navigation';
 
@@ -15,7 +12,8 @@ const AddTransformationTypePage = async ({ params: { type } }: SearchParamProps)
 
   if(!userId) redirect('/sign-in')
 
-  const user = await getUserById(userId);
+  const clerkUser = await currentUser();
+  const user = await getOrCreateUser(clerkUser);
 
   return (
     <>

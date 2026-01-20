@@ -13,7 +13,7 @@
     <img src="https://img.shields.io/badge/-Tailwind_CSS-black?style=for-the-badge&logoColor=white&logo=tailwindcss&color=06B6D4" alt="tailwindcss" />
   </div>
 
-  <h3 align="center">An AI SaaS Platform</h3>
+  <h3 align="center">SparkleLab - AI-Powered Image SaaS Platform</h3>
 
    <div align="center">
      Build this project step by step with our detailed tutorial on <a href="https://www.youtube.com/@javascriptmastery/videos" target="_blank"><b>JavaScript Mastery</b></a> YouTube. Join the JSM family!
@@ -32,7 +32,7 @@
 
 ## 🚨 Tutorial
 
-This repository contains the code corresponding to an in-depth tutorial available on our YouTube channel, <a href="https://www.youtube.com/@javascriptmastery/videos" target="_blank"><b>JavaScript Mastery</b></a>. 
+This repository contains the code corresponding to an in-depth tutorial available on our YouTube channel, <a href="https://www.youtube.com/@javascriptmastery/videos" target="_blank"><b>JavaScript Mastery</b></a>.
 
 If you prefer visual learning, this is the perfect resource for you. Follow our tutorial to learn how to build projects like these step-by-step in a beginner-friendly manner!
 
@@ -40,7 +40,7 @@ If you prefer visual learning, this is the perfect resource for you. Follow our 
 
 ## <a name="introduction">🤖 Introduction</a>
 
-Build an AI image SaaS platform that excels in image processing capabilities, integrates a secure payment infrastructure, offers advanced image search functionalities, and supports multiple AI features, including image restoration, recoloring, object removal, generative filling, and background removal. This project can be a guide for your next AI image tool and a boost to your portfolio. 
+SparkleLab is an AI-powered image SaaS platform that excels in image processing capabilities, integrates a secure payment infrastructure, offers advanced image search functionalities, and supports multiple AI features including image restoration, recoloring, object removal, generative filling, and background removal. This project serves as a comprehensive guide for building your next AI image tool and a valuable addition to your portfolio.
 
 If you're getting started and need assistance or face any bugs, join our active Discord community with over 27k+ members. It's a place where people help each other out.
 
@@ -48,112 +48,125 @@ If you're getting started and need assistance or face any bugs, join our active 
 
 ## <a name="tech-stack">⚙️ Tech Stack</a>
 
-- Next.js
-- TypeScript
-- MongoDB
-- Clerk
-- Cloudinary
-- Stripe
-- Shadcn
-- TailwindCSS
+- **Next.js 14** - React framework for production
+- **TypeScript** - Type-safe JavaScript
+- **MongoDB** - NoSQL database
+- **Clerk** - Authentication and user management
+- **Cloudinary** - Image storage and processing
+- **Stripe** - Payment processing
+- **Shadcn/UI** - Modern UI components
+- **Tailwind CSS** - Utility-first CSS framework
+- **Mongoose** - MongoDB object modeling
+- **React Hook Form** - Form handling
+- **Zod** - Schema validation
 
 ## <a name="features">🔋 Features</a>
 
-👉 **Authentication and Authorization**: Secure user access with registration, login, and route protection.
+👉 **Authentication and Authorization**: Secure user access with registration, login, and route protection using Clerk.
 
-👉 **Community Image Showcase**: Explore user transformations with easy navigation using pagination
+👉 **Community Image Showcase**: Explore user transformations with easy navigation using pagination.
 
-👉 **Advanced Image Search**: Find images by content or objects present inside the image quickly and accurately
+👉 **Advanced Image Search**: Find images by content or objects present inside the image quickly and accurately using Cloudinary AI.
 
-👉 **Image Restoration**: Revive old or damaged images effortlessly
+👉 **Image Restoration**: Revive old or damaged images effortlessly using AI restoration algorithms.
 
-👉 **Image Recoloring**: Customize images by replacing objects with desired colors easily
+👉 **Image Recoloring**: Customize images by replacing objects with desired colors easily.
 
-👉 **Image Generative Fill**: Fill in missing areas of images seamlessly
+👉 **Image Generative Fill**: Fill in missing areas of images seamlessly using AI outpainting.
 
-👉 **Object Removal**: Clean up images by removing unwanted objects with precision
+👉 **Object Removal**: Clean up images by removing unwanted objects with precision.
 
-👉 **Background Removal**: Extract objects from backgrounds with ease
+👉 **Background Removal**: Extract objects from backgrounds with ease.
 
-👉 **Download Transformed Images**: Save and share AI-transformed images conveniently
+👉 **Download Transformed Images**: Save and share AI-transformed images conveniently.
 
-👉 **Transformed Image Details**: View details of transformations for each image
+👉 **Transformed Image Details**: View details of transformations for each image.
 
-👉 **Transformation Management**: Control over deletion and updates of transformations
+👉 **Transformation Management**: Control over deletion and updates of transformations.
 
-👉 **Credits System**: Earn or purchase credits for image transformations
+👉 **Credits System**: Earn or purchase credits for image transformations.
 
-👉 **Profile Page**: Access transformed images and credit information personally
+👉 **Profile Page**: Access transformed images and credit information personally.
 
-👉 **Credits Purchase**: Securely buy credits via Stripe for uninterrupted use
+👉 **Credits Purchase**: Securely buy credits via Stripe for uninterrupted use.
 
-👉 **Responsive UI/UX**: A seamless experience across devices with a user-friendly interface
+👉 **Responsive UI/UX**: A seamless experience across devices with a user-friendly interface built with Tailwind CSS and Shadcn/UI.
 
-
-and many more, including code architecture and reusability 
+And many more features including code architecture and reusability!
 
 ## <a name="quick-start">🤸 Quick Start</a>
 
 Follow these steps to set up the project locally on your machine.
 
-**Prerequisites**
+### Prerequisites
 
 Make sure you have the following installed on your machine:
 
 - [Git](https://git-scm.com/)
-- [Node.js](https://nodejs.org/en)
+- [Node.js](https://nodejs.org/en) (version 18 or higher)
 - [npm](https://www.npmjs.com/) (Node Package Manager)
 
-**Cloning the Repository**
+### Cloning the Repository
 
 ```bash
-git clone https://github.com/adrianhajdin/imaginify.git
-cd imaginify
+git clone https://github.com/your-username/sparklelab.git
+cd sparklelab
 ```
 
-**Installation**
+### Installation
 
 Install the project dependencies using npm:
 
 ```bash
-npm run dev
+npm install
 ```
 
-**Set Up Environment Variables**
+### Environment Variables
 
 Create a new file named `.env.local` in the root of your project and add the following content:
 
 ```env
-#NEXT
-NEXT_PUBLIC_SERVER_URL=
+# Next.js
+NEXT_PUBLIC_SERVER_URL=http://localhost:3000
 
-#MONGODB
-MONGODB_URL=
+# MongoDB
+MONGODB_URL=mongodb://localhost:27017/sparklelab
 
-#CLERK
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=
-CLERK_SECRET_KEY=
-WEBHOOK_SECRET=
+# Clerk Authentication
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
+CLERK_SECRET_KEY=your_clerk_secret_key
+WEBHOOK_SECRET=your_clerk_webhook_secret
 
 NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
 NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
 NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/
 NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/
 
-#CLOUDINARY
-NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=
-CLOUDINARY_API_KEY=
-CLOUDINARY_API_SECRET=
+# Cloudinary
+NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
+CLOUDINARY_API_KEY=your_cloudinary_api_key
+CLOUDINARY_API_SECRET=your_cloudinary_api_secret
 
-#STRIPE
-STRIPE_SECRET_KEY=
-STRIPE_WEBHOOK_SECRET=
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
+# Stripe
+STRIPE_SECRET_KEY=your_stripe_secret_key
+STRIPE_WEBHOOK_SECRET=your_stripe_webhook_secret
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
 ```
 
-Replace the placeholder values with your actual respective account credentials. You can obtain these credentials by signing up on the [Clerk](https://clerk.com/), [MongoDB](https://www.mongodb.com/), [Cloudinary](https://cloudinary.com/) and [Stripe](https://stripe.com)
+Replace the placeholder values with your actual respective account credentials. You can obtain these credentials by signing up on the following platforms:
 
-**Running the Project**
+- [Clerk](https://clerk.com/) for authentication
+- [MongoDB](https://www.mongodb.com/) for database
+- [Cloudinary](https://cloudinary.com/) for image processing
+- [Stripe](https://stripe.com) for payments
+
+### Database Setup
+
+Ensure MongoDB is running on your local machine or use a cloud MongoDB instance. Update the `MONGODB_URL` in your environment variables accordingly.
+
+### Running the Project
+
+Start the development server:
 
 ```bash
 npm run dev
@@ -349,8 +362,9 @@ module.exports = {
   }
 }
 
+/* Custom utility classes for consistent styling */
 .auth {
-  @apply flex-center min-h-screen w-full bg-purple-100
+  @apply flex-center min-h-screen w-full bg-purple-100;
 }
 
 .root {
@@ -358,21 +372,11 @@ module.exports = {
 }
 
 .root-container {
-  @apply mt-16 flex-1 overflow-auto py-8 lg:mt-0 lg:max-h-screen lg:py-10
+  @apply mt-16 flex-1 overflow-auto py-8 lg:mt-0 lg:max-h-screen lg:py-10;
 }
 
-/* ========================================== TAILWIND STYLES */
+/* ===== UTILITY CLASSES */
 @layer utilities {
-  /* ===== UTILITIES */
-  .wrapper {
-    @apply max-w-5xl mx-auto px-5 md:px-10 w-full text-dark-400 p-16-regular;
-  }
-
-  .gradient-text {
-    @apply bg-purple-gradient bg-cover bg-clip-text text-transparent;
-  }
-
-  /* ===== ALIGNMENTS */
   .flex-center {
     @apply flex justify-center items-center;
   }
@@ -381,28 +385,26 @@ module.exports = {
     @apply flex justify-between items-center;
   }
 
-  /* ===== TYPOGRAPHY */
-  /* 44 */
+  .gradient-text {
+    @apply bg-purple-gradient bg-cover bg-clip-text text-transparent;
+  }
+
   .h1-semibold {
     @apply text-[36px] font-semibold sm:text-[44px] leading-[120%] sm:leading-[56px];
   }
 
-  /* 36 */
   .h2-bold {
     @apply text-[30px] font-bold md:text-[36px] leading-[110%];
   }
 
-  /* 30 */
   .h3-bold {
     @apply font-bold text-[30px] leading-[140%];
   }
 
-  /* 24 */
   .p-24-bold {
     @apply font-bold text-[24px] leading-[120%];
   }
 
-  /* 20 */
   .p-20-semibold {
     @apply font-semibold text-[20px] leading-[140%];
   }
@@ -411,12 +413,10 @@ module.exports = {
     @apply font-normal text-[20px] leading-[140%];
   }
 
-  /* 18 */
   .p-18-semibold {
     @apply font-semibold text-[18px] leading-[140%];
   }
 
-  /* 16 */
   .p-16-semibold {
     @apply font-semibold text-[16px] leading-[140%];
   }
@@ -429,17 +429,14 @@ module.exports = {
     @apply font-normal text-[16px] leading-[140%];
   }
 
-  /* 14 */
   .p-14-medium {
     @apply font-medium text-[14px] leading-[120%];
   }
 
-  /* 10 */
   .p-10-medium {
     @apply font-medium text-[10px] leading-[140%];
   }
 
-  /* =====  SHADCN OVERRIDES */
   .button {
     @apply py-4 px-6 flex-center gap-3 rounded-full p-16-semibold focus-visible:ring-offset-0 focus-visible:ring-transparent !important;
   }
@@ -469,7 +466,7 @@ module.exports = {
   }
 
   .select-trigger {
-    @apply flex items-center  gap-2 py-5 capitalize focus-visible:outline-none;
+    @apply flex items-center gap-2 py-5 capitalize focus-visible:outline-none;
   }
 
   .select-item {
@@ -567,7 +564,7 @@ module.exports = {
   }
 
   .media-uploader_cta-image {
-    @apply rounded-[16px] bg-white  p-5 shadow-sm shadow-purple-200/50;
+    @apply rounded-[16px] bg-white p-5 shadow-sm shadow-purple-200/50;
   }
 
   /* Navbar Component */
@@ -602,7 +599,7 @@ module.exports = {
   }
 
   .sidebar-nav_element {
-    @apply flex-center p-16-semibold w-full whitespace-nowrap rounded-full bg-cover  transition-all hover:bg-purple-100 hover:shadow-inner;
+    @apply flex-center p-16-semibold w-full whitespace-nowrap rounded-full bg-cover transition-all hover:bg-purple-100 hover:shadow-inner;
   }
 
   .sidebar-link {
@@ -636,7 +633,7 @@ module.exports = {
   }
 }
 
-/* =====  CLERK OVERRIDES */
+/* ===== CLERK OVERRIDES */
 .cl-userButtonBox {
   display: flex;
   flex-flow: row-reverse;
@@ -780,6 +777,9 @@ export const plans = [
 export const transformationTypes = {
   restore: {
     type: "restore",
+    title: "Restore Image",
+    subTitle: "Refine images by removing noise and imperfections",
+    config: { restore: true },
     title: "Restore Image",
     subTitle: "Refine images by removing noise and imperfections",
     config: { restore: true },

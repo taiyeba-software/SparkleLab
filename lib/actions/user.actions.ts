@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { User as ClerkUser } from "@clerk/nextjs/server";
 
 import User from "../database/models/user.model";
 import { connectToDatabase } from "../database/mongoose";
@@ -26,12 +27,36 @@ export async function getUserById(userId: string) {
 
     const user = await User.findOne({ clerkId: userId });
 
-    if (!user) throw new Error("User not found");
+    if (!user) return null;
 
     return JSON.parse(JSON.stringify(user));
   } catch (error) {
     handleError(error);
   }
+}
+
+// GET OR CREATE
+export async function getOrCreateUser(clerkUser: ClerkUser | null) {
+  if (!clerkUser) throw new Error("Clerk user missing");
+
+  await connectToDatabase();
+
+  let user = await User.findOne({ clerkId: clerkUser.id });
+
+  if (!user) {
+    user = await User.create({
+      clerkId: clerkUser.id,
+      email: clerkUser.emailAddresses[0].emailAddress,
+      username: clerkUser.username || "user",
+      photo: clerkUser.imageUrl || "",
+      firstName: clerkUser.firstName || "",
+      lastName: clerkUser.lastName || "",
+      planId: 1,
+      creditBalance: 50,
+    });
+  }
+
+  return JSON.parse(JSON.stringify(user));
 }
 
 // UPDATE
