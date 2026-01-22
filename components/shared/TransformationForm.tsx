@@ -167,7 +167,7 @@ const TransformationForm = ({ action, data = null, userId, type, creditBalance, 
     setIsTransforming(true)
 
     setTransformationConfig(
-      deepMergeObjects(newTransformation, transformationConfig)
+      deepMergeObjects(newTransformation || {}, transformationConfig || {})
     )
 
     setNewTransformation(null)
