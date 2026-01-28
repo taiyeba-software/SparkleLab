@@ -116,6 +116,13 @@ const TransformedImage = ({ image, type, title, transformationConfig, isTransfor
               className="transformed-image"
               onLoad={() => {
                 setIsTransforming && setIsTransforming(false);
+                if (type !== 'removeBackground' && userId) {
+                  try {
+                    updateCredits(userId, -1);
+                  } catch (error) {
+                    console.error('Failed to deduct credits:', error);
+                  }
+                }
               }}
               onError={() => {
                 debounce(() => {

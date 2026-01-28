@@ -176,10 +176,7 @@ const TransformationForm = ({ action, data = null, userId, type, creditBalance, 
     setNewTransformation(null)
 
     startTransition(async () => {
-      // Only deduct credits immediately for non-removeBackground transformations
-      if (type !== 'removeBackground') {
-        await updateCredits(userId, creditFee)
-      }
+      // Credits deducted after successful render via onLoad callback
     })
   }
 
@@ -314,7 +311,7 @@ const TransformationForm = ({ action, data = null, userId, type, creditBalance, 
           <Button 
             type="submit"
             className="submit-button capitalize"
-            disabled={isSubmitting}
+            disabled={isSubmitting || (type === 'removeBackground' && (isTransforming || !transformedImageUrl))}
           >
             {isSubmitting ? 'Submitting...' : 'Save Image'}
           </Button>

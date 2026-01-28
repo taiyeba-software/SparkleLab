@@ -1,5 +1,6 @@
 // app/api/remove-bg/route.ts
 import { NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
 import { v2 as cloudinary } from 'cloudinary'
 
 interface CloudinaryUploadResult {
@@ -8,6 +9,11 @@ interface CloudinaryUploadResult {
 }
 
 export async function POST(req: Request) {
+  const { userId } = await auth();
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const { imageUrl } = await req.json();
 
   // Configure Cloudinary
