@@ -50,6 +50,7 @@ const TransformationForm = ({ action, data = null, userId, type, creditBalance, 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isTransforming, setIsTransforming] = useState(false);
   const [transformationConfig, setTransformationConfig] = useState(config)
+  const [transformedImageUrl, setTransformedImageUrl] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
 
@@ -72,12 +73,14 @@ const TransformationForm = ({ action, data = null, userId, type, creditBalance, 
     setIsSubmitting(true);
 
     if(data || image) {
-      const transformationUrl = getCldImageUrl({
-        width: image?.width,
-        height: image?.height,
-        src: image?.publicId,
-        ...transformationConfig
-      })
+      const transformationUrl = type === 'removeBackground' && transformedImageUrl
+        ? transformedImageUrl
+        : getCldImageUrl({
+            width: image?.width,
+            height: image?.height,
+            src: image?.publicId,
+            ...transformationConfig
+          })
 
       const imageData = {
         title: values.title,
@@ -173,7 +176,10 @@ const TransformationForm = ({ action, data = null, userId, type, creditBalance, 
     setNewTransformation(null)
 
     startTransition(async () => {
-      await updateCredits(userId, creditFee)
+      // Only deduct credits immediately for non-removeBackground transformations
+      if (type !== 'removeBackground') {
+        await updateCredits(userId, creditFee)
+      }
     })
   }
 
@@ -279,6 +285,7 @@ const TransformationForm = ({ action, data = null, userId, type, creditBalance, 
                 publicId={field.value}
                 image={image}
                 type={type}
+                userId={userId}
               />
             )}
           />
@@ -290,6 +297,8 @@ const TransformationForm = ({ action, data = null, userId, type, creditBalance, 
             isTransforming={isTransforming}
             setIsTransforming={setIsTransforming}
             transformationConfig={transformationConfig}
+            setTransformedImageUrl={setTransformedImageUrl}
+            userId={userId}
           />
         </div>
 
