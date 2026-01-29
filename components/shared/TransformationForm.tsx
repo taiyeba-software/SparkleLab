@@ -41,6 +41,8 @@ export const formSchema = z.object({
   color: z.string().optional(),
   prompt: z.string().optional(),
   publicId: z.string(),
+  width: z.number().optional(),
+  height: z.number().optional(),
 })
 
 const TransformationForm = ({ action, data = null, userId, type, creditBalance, config = null }: TransformationFormProps) => {
@@ -267,6 +269,40 @@ const TransformationForm = ({ action, data = null, userId, type, creditBalance, 
                 )}
               />
             )}
+          </div>
+        )}
+
+        {type === 'resize' && (
+          <div className="resize-fields grid grid-cols-2 gap-4">
+            <CustomField
+              control={form.control}
+              name="width"
+              formLabel="Width"
+              className="w-full"
+              render={({ field }) => (
+                <Input
+                  type="number"
+                  value={field.value ?? ''}
+                  className="input-field"
+                  onChange={(e) => field.onChange(Number(e.target.value) || undefined)}
+                />
+              )}
+            />
+
+            <CustomField
+              control={form.control}
+              name="height"
+              formLabel="Height"
+              className="w-full"
+              render={({ field }) => (
+                <Input
+                  type="number"
+                  value={field.value ?? ''}
+                  className="input-field"
+                  onChange={(e) => field.onChange(Number(e.target.value) || undefined)}
+                />
+              )}
+            />
           </div>
         )}
 

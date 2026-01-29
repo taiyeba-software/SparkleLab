@@ -159,6 +159,13 @@ export const transformationTypes = {
     },
     icon: "filter.svg",
   },
+  resize: {
+    type: "resize",
+    title: "Resize Image",
+    subTitle: "Resize image dimensions using Sharp",
+    config: {},
+    icon: "image.svg",
+  },
 };
 
 export const aspectRatioOptions = {
