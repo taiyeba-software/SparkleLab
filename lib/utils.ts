@@ -9,6 +9,7 @@ import { twMerge } from "tailwind-merge";
 
 import { aspectRatioOptions } from "@/constants";
 import type { IImage } from "@/lib/database/models/image.model";
+import type { FormUrlQueryParams, RemoveUrlQueryParams } from "@/types";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -76,7 +77,7 @@ export function removeKeysFromQuery({
 }: RemoveUrlQueryParams) {
   const currentUrl = qs.parse(searchParams);
 
-  keysToRemove.forEach((key) => {
+  keysToRemove.forEach((key: string) => {
     delete currentUrl[key];
   });
 
@@ -104,12 +105,12 @@ export const debounce = <T extends unknown[]>(
 export type AspectRatioKey = keyof typeof aspectRatioOptions;
 export const getImageSize = (
   type: string,
-  image: IImage,
+  image: IImage | null | undefined,
   dimension: "width" | "height"
 ): number => {
   if (type === "fill") {
     return (
-      aspectRatioOptions[image.aspectRatio as AspectRatioKey]?.[dimension] ||
+      aspectRatioOptions[image?.aspectRatio as AspectRatioKey]?.[dimension] ||
       1000
     );
   }

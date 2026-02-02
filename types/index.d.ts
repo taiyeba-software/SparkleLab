@@ -1,4 +1,5 @@
-/* eslint-disable no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 
 // ====== USER PARAMS
 declare type CreateUserParams = {
@@ -142,4 +143,25 @@ declare type TransformedImageProps = {
   setIsTransforming?: React.Dispatch<React.SetStateAction<boolean>>;
   setTransformedImageUrl?: React.Dispatch<React.SetStateAction<string | null>>;
   userId?: string;
+};
+
+// Import IImage from mongoose model for use in other types
+import type { IImage } from "@/lib/database/models/image.model";
+
+export type {
+  CreateUserParams,
+  UpdateUserParams,
+  AddImageParams,
+  UpdateImageParams,
+  Transformations,
+  CheckoutTransactionParams,
+  CreateTransactionParams,
+  TransformationTypeKey,
+  FormUrlQueryParams,
+  UrlQueryParams,
+  RemoveUrlQueryParams,
+  SearchParamProps,
+  TransformationFormProps,
+  TransformedImageProps,
+  IImage,
 };

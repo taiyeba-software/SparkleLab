@@ -1,9 +1,8 @@
 "use client";
 
 import { useToast } from "@/components/ui/use-toast";
-import { dataUrl, getImageSize } from "@/lib/utils";
+import { getImageSize } from "@/lib/utils";
 import { CldImage, CldUploadWidget } from "next-cloudinary";
-import { PlaceholderValue } from "next/dist/shared/lib/get-img-props";
 import Image from "next/image";
 import React from "react";
 import type { IImage } from "@/lib/database/models/image.model";
@@ -20,9 +19,9 @@ export type ImageState = {
 
 type MediaUploaderProps = {
   onValueChange: (value: string) => void;
-  setImage: React.Dispatch<React.SetStateAction<IImage>>;
+  setImage: React.Dispatch<React.SetStateAction<IImage | null>>;
   publicId: string;
-  image: IImage;
+  image: IImage | null;
   type: string;
   userId?: string;
 };
@@ -102,7 +101,6 @@ const MediaUploader = ({
                 src={publicId}
                 alt="uploaded image"
                 sizes="(max-width: 767px) 100vw, 50vw"
-                placeholder={dataUrl as PlaceholderValue}
                 className="media-uploader_cldImage"
               />
             </div>

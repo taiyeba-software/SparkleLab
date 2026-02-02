@@ -1,360 +1,288 @@
-"use client"
- 
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import { z } from "zod"
+"use client";
+
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { useEffect, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { getCldImageUrl } from "next-cloudinary";
+
+import { Button } from "@/components/ui/button";
+import { Form } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+  creditFee,
+  defaultValues,
+  transformationTypes,
+} from "@/constants";
 
-import { Button } from "@/components/ui/button"
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { aspectRatioOptions, creditFee, defaultValues, transformationTypes } from "@/constants"
-import { CustomField } from "./CustomField"
-import { useEffect, useState, useTransition } from "react"
-import { AspectRatioKey, debounce, deepMergeObjects } from "@/lib/utils"
-import MediaUploader from "./MediaUploader"
-import TransformedImage from "./TransformedImage"
-import { updateCredits } from "@/lib/actions/user.actions"
-import { getCldImageUrl } from "next-cloudinary"
-import { addImage, updateImage } from "@/lib/actions/image.actions"
-import { useRouter } from "next/navigation"
-import { InsufficientCreditsModal } from "./InsufficientCreditsModal"
- 
+import { CustomField } from "./CustomField";
+import MediaUploader from "./MediaUploader";
+import TransformedImage from "./TransformedImage";
+import { InsufficientCreditsModal } from "./InsufficientCreditsModal";
+
+import { deepMergeObjects } from "@/lib/utils";
+import { addImage, updateImage } from "@/lib/actions/image.actions";
+import { Transformations, IImage } from "@/types";
+
+/* -------------------------------------------------------------------------- */
+/* FORM SCHEMA                                                                 */
+/* -------------------------------------------------------------------------- */
+
 export const formSchema = z.object({
-  title: z.string(),
+  title: z.string().min(1, { message: "Title is required" }),
   aspectRatio: z.string().optional(),
   color: z.string().optional(),
   prompt: z.string().optional(),
   publicId: z.string(),
   width: z.number().optional(),
   height: z.number().optional(),
-})
+});
 
-const TransformationForm = ({ action, data = null, userId, type, creditBalance, config = null }: TransformationFormProps) => {
-  const transformationType = transformationTypes[type];
-  const [image, setImage] = useState(data)
-  const [newTransformation, setNewTransformation] = useState<Transformations | null>(null);
+/* -------------------------------------------------------------------------- */
+/* TYPES                                                                       */
+/* -------------------------------------------------------------------------- */
+
+interface TransformationFormProps {
+  action: "Add" | "Update";
+  data?: IImage | null;
+  userId: string;
+  type: string;
+  creditBalance: number;
+  config?: Transformations | null;
+}
+
+/* -------------------------------------------------------------------------- */
+/* COMPONENT                                                                   */
+/* -------------------------------------------------------------------------- */
+
+const TransformationForm = ({
+  action,
+  data = null,
+  userId,
+  type,
+  creditBalance,
+  config = null,
+}: TransformationFormProps) => {
+  const router = useRouter();
+  const transformationType = transformationTypes[type as keyof typeof transformationTypes];
+
+  const [image, setImage] = useState<IImage | null>(data);
+  const [newTransformation, setNewTransformation] =
+    useState<Transformations | null>(null);
+  const [transformationConfig, setTransformationConfig] =
+    useState<Transformations | null>(config);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isTransforming, setIsTransforming] = useState(false);
-  const [transformationConfig, setTransformationConfig] = useState(config)
-  const [transformedImageUrl, setTransformedImageUrl] = useState<string | null>(null);
-  const [isPending, startTransition] = useTransition()
-  const router = useRouter()
+  const [transformedImageUrl, setTransformedImageUrl] =
+    useState<string | null>(null);
 
-  const initialValues = data && action === 'Update' ? {
-    title: data?.title,
-    aspectRatio: data?.aspectRatio,
-    color: data?.color,
-    prompt: data?.prompt,
-    publicId: data?.publicId,
-  } : defaultValues
+  const [, startTransition] = useTransition();
 
-   // 1. Define your form.
-   const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: initialValues,
-  })
- 
-  // 2. Define a submit handler.
+    defaultValues:
+      data && action === "Update"
+        ? {
+            title: data.title,
+            aspectRatio: data.aspectRatio,
+            color: data.color,
+            prompt: data.prompt,
+            publicId: data.publicId,
+          }
+        : defaultValues,
+  });
+
+  /* ------------------------------------------------------------------------ */
+  /* SUBMIT                                                                   */
+  /* ------------------------------------------------------------------------ */
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    if (!image) return;
+
     setIsSubmitting(true);
 
-    if(data || image) {
-      const transformationUrl = type === 'removeBackground' && transformedImageUrl
-        ? transformedImageUrl
-        : getCldImageUrl({
-            width: image?.width,
-            height: image?.height,
-            src: image?.publicId,
-            ...transformationConfig
-          })
+    try {
+      const transformationUrl =
+        type === "removeBackground" && transformedImageUrl
+          ? transformedImageUrl
+          : getCldImageUrl({
+              src: image.publicId,
+              width: image.width,
+              height: image.height,
+              ...transformationConfig,
+            });
 
-      const imageData = {
+      const payload = {
         title: values.title,
-        publicId: image?.publicId,
+        publicId: image.publicId,
         transformationType: type,
-        width: image?.width,
-        height: image?.height,
+        width: image.width,
+        height: image.height,
         config: transformationConfig,
-        secureURL: image?.secureURL,
+        secureURL: image.secureURL,
         transformationURL: transformationUrl,
         aspectRatio: values.aspectRatio,
         prompt: values.prompt,
         color: values.color,
-      }
+      };
 
-      if(action === 'Add') {
-        try {
-          const newImage = await addImage({
-            image: imageData,
-            userId,
-            path: '/'
-          })
+      if (action === "Add") {
+        const created = await addImage({
+          image: payload,
+          userId,
+          path: "/",
+        });
 
-          if(newImage) {
-            form.reset()
-            setImage(data)
-            router.push(`/transformations/${newImage._id}`)
-          }
-        } catch (error) {
-          console.log(error);
+        if (created) {
+          form.reset();
+          router.push(`/transformations/${created._id}`);
         }
       }
 
-      if(action === 'Update') {
-        try {
-          const updatedImage = await updateImage({
-            image: {
-              ...imageData,
-              _id: data._id
-            },
-            userId,
-            path: `/transformations/${data._id}`
-          })
+      if (action === "Update" && data?._id) {
+        const updated = await updateImage({
+          image: ({ ...payload, _id: data._id } as any),
+          userId,
+          path: `/transformations/${String(data._id)}`,
+        });
 
-          if(updatedImage) {
-            router.push(`/transformations/${updatedImage._id}`)
-          }
-        } catch (error) {
-          console.log(error);
+        if (updated) {
+          router.push(`/transformations/${updated._id}`);
         }
       }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSubmitting(false);
     }
-
-    setIsSubmitting(false)
   }
 
-  const onSelectFieldHandler = (value: string, onChangeField: (value: string) => void) => {
-    const imageSize = aspectRatioOptions[value as AspectRatioKey]
-
-    setImage((prevState: any) => ({
-      ...prevState,
-      aspectRatio: imageSize.aspectRatio,
-      width: imageSize.width,
-      height: imageSize.height,
-    }))
-
-    setNewTransformation(transformationType.config);
-
-    return onChangeField(value)
-  }
-
-  const onInputChangeHandler = (fieldName: string, value: string, type: string, onChangeField: (value: string) => void) => {
-    debounce(() => {
-      setNewTransformation((prevState: any) => ({
-        ...prevState,
-        [type]: {
-          ...prevState?.[type],
-          [fieldName === 'prompt' ? 'prompt' : 'to' ]: value 
-        }
-      }))
-    }, 1000)();
-      
-    return onChangeField(value)
-  }
-
-  const onTransformHandler = async () => {
-    setIsTransforming(true)
-
-    setTransformationConfig(
-      deepMergeObjects(newTransformation || {}, transformationConfig || {})
-    )
-
-    setNewTransformation(null)
-
-    startTransition(async () => {
-      // Credits deducted after successful render via onLoad callback
-    })
-  }
+  /* ------------------------------------------------------------------------ */
+  /* TRANSFORMATION ACTIVATION                                                 */
+  /* ------------------------------------------------------------------------ */
 
   useEffect(() => {
-    if(image && (type === 'restore' || type === 'removeBackground')) {
-      setNewTransformation(transformationType.config)
+    if (!image) return;
+
+    if (type === "restore" || type === "removeBackground") {
+      setNewTransformation(transformationType.config);
     }
-  }, [image, transformationType.config, type])
+
+    if (type === "resize") {
+      const { width, height } = form.getValues();
+      if (width && height) {
+        setNewTransformation({ resize: { width, height } });
+      }
+    }
+  }, [image, type, transformationType.config, form]);
+
+  const onTransformHandler = () => {
+    if (!newTransformation) return;
+
+    setIsTransforming(true);
+    setTransformationConfig((prev: Transformations | null) =>
+      deepMergeObjects(newTransformation, prev ?? {})
+    );
+
+    setNewTransformation(null);
+    startTransition(() => {});
+  };
+
+  /* ------------------------------------------------------------------------ */
+  /* JSX                                                                      */
+  /* ------------------------------------------------------------------------ */
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         {creditBalance < Math.abs(creditFee) && <InsufficientCreditsModal />}
-        <CustomField 
+
+        <CustomField
           control={form.control}
           name="title"
           formLabel="Image Title"
-          className="w-full"
-          render={({ field }) => <Input {...field} className="input-field" />}
+          render={({ field }) => <Input {...field} />}
         />
 
-        {type === 'fill' && (
-          <CustomField
-            control={form.control}
-            name="aspectRatio"
-            formLabel="Aspect Ratio"
-            className="w-full"
-            render={({ field }) => (
-              <Select
-                onValueChange={(value) => onSelectFieldHandler(value, field.onChange)}
-                value={field.value}
-              >
-                <SelectTrigger className="select-field">
-                  <SelectValue placeholder="Select size" />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.keys(aspectRatioOptions).map((key) => (
-                    <SelectItem key={key} value={key} className="select-item">
-                      {aspectRatioOptions[key as AspectRatioKey].label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}  
-          />
-        )}
-
-        {(type === 'remove' || type === 'recolor') && (
-          <div className="prompt-field">
-            <CustomField 
-              control={form.control}
-              name="prompt"
-              formLabel={
-                type === 'remove' ? 'Object to remove' : 'Object to recolor'
-              }
-              className="w-full"
-              render={({ field }) => (
-                <Input 
-                  value={field.value}
-                  className="input-field"
-                  onChange={(e) => onInputChangeHandler(
-                    'prompt',
-                    e.target.value,
-                    type,
-                    field.onChange
-                  )}
-                />
-              )}
-            />
-
-            {type === 'recolor' && (
-              <CustomField 
-                control={form.control}
-                name="color"
-                formLabel="Replacement Color"
-                className="w-full"
-                render={({ field }) => (
-                  <Input 
-                    value={field.value}
-                    className="input-field"
-                    onChange={(e) => onInputChangeHandler(
-                      'color',
-                      e.target.value,
-                      'recolor',
-                      field.onChange
-                    )}
-                  />
-                )}
-              />
-            )}
-          </div>
-        )}
-
-        {type === 'resize' && (
-          <div className="resize-fields grid grid-cols-2 gap-4">
+        {type === "resize" && (
+          <div className="grid grid-cols-2 gap-4">
             <CustomField
               control={form.control}
               name="width"
               formLabel="Width"
-              className="w-full"
               render={({ field }) => (
                 <Input
                   type="number"
-                  value={field.value ?? ''}
-                  className="input-field"
-                  onChange={(e) => field.onChange(Number(e.target.value) || undefined)}
+                  value={field.value ?? ""}
+                  onChange={(e) =>
+                    field.onChange(Number(e.target.value) || undefined)
+                  }
                 />
               )}
             />
-
             <CustomField
               control={form.control}
               name="height"
               formLabel="Height"
-              className="w-full"
               render={({ field }) => (
                 <Input
                   type="number"
-                  value={field.value ?? ''}
-                  className="input-field"
-                  onChange={(e) => field.onChange(Number(e.target.value) || undefined)}
+                  value={field.value ?? ""}
+                  onChange={(e) =>
+                    field.onChange(Number(e.target.value) || undefined)
+                  }
                 />
               )}
             />
           </div>
         )}
 
-        <div className="media-uploader-field">
-          <CustomField 
-            control={form.control}
-            name="publicId"
-            className="flex size-full flex-col"
-            render={({ field }) => (
-              <MediaUploader 
-                onValueChange={field.onChange}
-                setImage={setImage}
-                publicId={field.value}
-                image={image}
-                type={type}
-                userId={userId}
-              />
-            )}
-          />
+        <CustomField
+          control={form.control}
+          name="publicId"
+          render={({ field }) => (
+            <MediaUploader
+              onValueChange={field.onChange}
+              setImage={setImage}
+              publicId={field.value}
+              image={image}
+              type={type}
+              userId={userId}
+            />
+          )}
+        />
 
-          <TransformedImage 
-            image={image}
-            type={type}
-            title={form.getValues().title}
-            isTransforming={isTransforming}
-            setIsTransforming={setIsTransforming}
-            transformationConfig={transformationConfig}
-            setTransformedImageUrl={setTransformedImageUrl}
-            userId={userId}
-          />
-        </div>
+        <TransformedImage
+          image={image}
+          type={type}
+          title={form.getValues().title}
+          transformationConfig={transformationConfig}
+          isTransforming={isTransforming}
+          setIsTransforming={setIsTransforming}
+          setTransformedImageUrl={setTransformedImageUrl}
+          userId={userId}
+        />
 
-        <div className="flex flex-col gap-4">
-          <Button 
-            type="button"
-            className="submit-button capitalize"
-            disabled={isTransforming || newTransformation === null}
-            onClick={onTransformHandler}
-          >
-            {isTransforming ? 'Transforming...' : 'Apply Transformation'}
-          </Button>
-          <Button 
-            type="submit"
-            className="submit-button capitalize"
-            disabled={isSubmitting || (type === 'removeBackground' && (isTransforming || !transformedImageUrl))}
-          >
-            {isSubmitting ? 'Submitting...' : 'Save Image'}
-          </Button>
-        </div>
+        <Button
+          type="button"
+          disabled={isTransforming || !newTransformation}
+          onClick={onTransformHandler}
+        >
+          Apply Transformation
+        </Button>
+
+        <Button
+          type="submit"
+          disabled={isSubmitting}
+        >
+          Save Image
+        </Button>
       </form>
     </Form>
-  )
-}
+  );
+};
 
-export default TransformationForm
+export default TransformationForm;

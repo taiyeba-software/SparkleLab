@@ -1,157 +1,148 @@
-"use client"
+"use client";
 
-import { dataUrl, debounce, download, getImageSize } from '@/lib/utils'
-import { CldImage, getCldImageUrl } from 'next-cloudinary'
-import { PlaceholderValue } from 'next/dist/shared/lib/get-img-props'
-import Image from 'next/image'
-import React, { useEffect, useState } from 'react'
-import { updateCredits } from '@/lib/actions/user.actions'
+import Image from "next/image";
+import { CldImage, getCldImageUrl } from "next-cloudinary";
+import { useEffect, useState } from "react";
 
-const TransformedImage = ({ image, type, title, transformationConfig, isTransforming, setIsTransforming, hasDownload = false, setTransformedImageUrl, userId }: TransformedImageProps) => {
-  const [transformedImageUrl, setTransformedImageUrlState] = useState<string | null>(null);
+import { debounce, download, getImageSize } from "@/lib/utils";
+import { updateCredits } from "@/lib/actions/user.actions";
 
-  const downloadHandler = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+import type { TransformedImageProps } from "@/types";
+
+const TransformedImage = ({
+  image,
+  type,
+  title,
+  transformationConfig,
+  isTransforming,
+  setIsTransforming,
+  hasDownload = false,
+  setTransformedImageUrl,
+  userId,
+}: TransformedImageProps) => {
+  const [bgRemovedUrl, setBgRemovedUrl] = useState<string | null>(null);
+
+  const downloadHandler = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
 
-    const urlToDownload = transformedImageUrl || getCldImageUrl({
-      width: image?.width,
-      height: image?.height,
-      src: image?.publicId,
-      ...transformationConfig
-    });
+    const url =
+      bgRemovedUrl ||
+      getCldImageUrl({
+        src: image?.publicId,
+        width: image?.width,
+        height: image?.height,
+        ...transformationConfig,
+      });
 
-    download(urlToDownload, title)
-  }
+    download(url, title);
+  };
 
-  // Handle background removal transformation
+  /* ---------------- REMOVE BG ---------------- */
+
   useEffect(() => {
-    if (type === 'removeBackground' && image?.secureURL && transformationConfig?.removeBackground) {
-      const removeBackground = async () => {
-        try {
-          setIsTransforming && setIsTransforming(true);
-          const response = await fetch('/api/remove-bg', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ imageUrl: image.secureURL }),
-          });
-
-          if (!response.ok) {
-            throw new Error('Failed to remove background');
-          }
-
-          const result = await response.json();
-          setTransformedImageUrlState(result.url);
-          setTransformedImageUrl && setTransformedImageUrl(result.url);
-          
-          // Deduct credits after successful background removal
-          if (userId) {
-            try {
-              await updateCredits(userId, -1);
-            } catch (error) {
-              console.error('Failed to deduct credits for background removal:', error);
-            }
-          }
-        } catch (error) {
-          console.error('Background removal failed:', error);
-        } finally {
-          setIsTransforming && setIsTransforming(false);
-        }
-      };
-
-      removeBackground();
+    if (
+      type !== "removeBackground" ||
+      !image?.secureURL ||
+      !transformationConfig?.removeBackground
+    ) {
+      return;
     }
-  }, [type, image?.secureURL, transformationConfig?.removeBackground, setIsTransforming, setTransformedImageUrl]);
+
+    const run = async () => {
+      try {
+        setIsTransforming?.(true);
+
+        const res = await fetch("/api/remove-bg", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ imageUrl: image.secureURL }),
+        });
+
+        if (!res.ok) throw new Error("BG removal failed");
+
+        const { url } = await res.json();
+        setBgRemovedUrl(url);
+        setTransformedImageUrl?.(url);
+
+        if (userId) {
+          await updateCredits(userId, -1);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsTransforming?.(false);
+      }
+    };
+
+    run();
+  }, [type, image?.secureURL, transformationConfig?.removeBackground, userId, setIsTransforming, setTransformedImageUrl]);
+
+  /* ---------------- RENDER ---------------- */
+
+  if (!image?.publicId || !transformationConfig) {
+    return <div className="transformed-placeholder">Transformed Image</div>;
+  }
 
   return (
     <div className="flex flex-col gap-4">
       <div className="flex-between">
-        <h3 className="h3-bold text-dark-600">
-          Transformed
-        </h3>
+        <h3 className="h3-bold text-dark-600">Transformed</h3>
 
         {hasDownload && (
-          <button
-            className="download-btn"
-            onClick={downloadHandler}
-          >
+          <button className="download-btn" onClick={downloadHandler}>
             <Image
               src="/assets/icons/download.svg"
               alt="Download"
               width={24}
               height={24}
-              className="pb-[6px]"
             />
           </button>
         )}
       </div>
 
-      {image?.publicId && transformationConfig ? (
-        <div className="relative">
-          {type === 'removeBackground' && transformedImageUrl ? (
+      <div className="relative">
+        {type === "removeBackground" && bgRemovedUrl ? (
+          <Image
+            src={bgRemovedUrl}
+            alt={title}
+            width={getImageSize(type, image, "width")}
+            height={getImageSize(type, image, "height")}
+            className="transformed-image"
+          />
+        ) : (
+          <CldImage
+            src={image.publicId}
+            alt={title}
+            width={getImageSize(type, image, "width")}
+            height={getImageSize(type, image, "height")}
+            className="transformed-image"
+            {...transformationConfig}
+            onLoad={async () => {
+              setIsTransforming?.(false);
+              if (userId && type !== "removeBackground") {
+                await updateCredits(userId, -1);
+              }
+            }}
+            onError={() =>
+              debounce(() => setIsTransforming?.(false), 8000)()
+            }
+          />
+        )}
+
+        {isTransforming && (
+          <div className="transforming-loader">
             <Image
-              width={getImageSize(type, image, "width")}
-              height={getImageSize(type, image, "height")}
-              src={transformedImageUrl}
-              alt={image.title}
-              className="transformed-image"
-              onLoad={() => {
-                setIsTransforming && setIsTransforming(false);
-              }}
-              onError={() => {
-                debounce(() => {
-                  setIsTransforming && setIsTransforming(false);
-                }, 8000)()
-              }}
+              src="/assets/icons/spinner.svg"
+              alt="spinner"
+              width={50}
+              height={50}
             />
-          ) : (
-            <CldImage
-              width={getImageSize(type, image, "width")}
-              height={getImageSize(type, image, "height")}
-              src={image?.publicId}
-              alt={image.title}
-              sizes={"(max-width: 767px) 100vw, 50vw"}
-              placeholder={dataUrl as PlaceholderValue}
-              className="transformed-image"
-              onLoad={() => {
-                setIsTransforming && setIsTransforming(false);
-                if (type !== 'removeBackground' && userId) {
-                  try {
-                    updateCredits(userId, -1);
-                  } catch (error) {
-                    console.error('Failed to deduct credits:', error);
-                  }
-                }
-              }}
-              onError={() => {
-                debounce(() => {
-                  setIsTransforming && setIsTransforming(false);
-                }, 8000)()
-              }}
-              {...transformationConfig}
-            />
-          )}
-
-          {isTransforming && (
-            <div className="transforming-loader">
-              <Image
-                src="/assets/icons/spinner.svg"
-                width={50}
-                height={50}
-                alt="spinner"
-              />
-              <p className="text-white/80">Please wait...</p>
-            </div>
-          )}
-        </div>
-      ): (
-        <div className="transformed-placeholder">
-          Transformed Image
-        </div>
-      )}
+            <p className="text-white/80">Please wait...</p>
+          </div>
+        )}
+      </div>
     </div>
-  )
-}
+  );
+};
 
-export default TransformedImage
+export default TransformedImage;

@@ -1,4 +1,5 @@
 "use server";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { revalidatePath } from "next/cache";
 import { connectToDatabase } from "../database/mongoose";
@@ -7,16 +8,20 @@ import User from "../database/models/user.model";
 import Image from "../database/models/image.model";
 import { redirect } from "next/navigation";
 
-import { v2 as cloudinary } from 'cloudinary'
+import { v2 as cloudinary } from 'cloudinary';
+import type { Query } from "mongoose";
 
-const populateUser = (query: any) => query.populate({
-  path: 'author',
-  model: User,
-  select: '_id firstName lastName clerkId'
-})
+// Use inline parameter types to avoid referencing global types that may not be picked up
+
+const populateUser = <T>(query: Query<T, any>) =>
+  query.populate({
+    path: "author",
+    model: User,
+    select: "_id firstName lastName clerkId",
+  });
 
 // ADD IMAGE
-export async function addImage({ image, userId, path }: AddImageParams) {
+export async function addImage({ image, userId, path }: { image: Record<string, unknown>; userId: string; path: string }) {
   try {
     await connectToDatabase();
 
@@ -26,41 +31,52 @@ export async function addImage({ image, userId, path }: AddImageParams) {
       throw new Error("User not found");
     }
 
-    const newImage = await Image.create({
-      ...image,
-      author: author._id,
-    })
+    // Validate required fields before creating the document
+    if (!image?.title || typeof image.title !== "string" || image.title.trim().length === 0) {
+      throw new Error("Image title is required");
+    }
+
+    // normalize transformationURL -> transformationUrl to match schema
+    const { transformationURL, ...rest } = image as unknown as Record<string, unknown>;
+    const imagePayload: Record<string, unknown> = { ...rest, author: author._id };
+    if (typeof transformationURL === "string") {
+      imagePayload.transformationUrl = transformationURL;
+    }
+
+    const newImage = await Image.create(imagePayload as any);
 
     revalidatePath(path);
 
     return JSON.parse(JSON.stringify(newImage));
-  } catch (error) {
-    handleError(error)
+  } catch (error: unknown) {
+    handleError(error);
   }
 }
 
 // UPDATE IMAGE
-export async function updateImage({ image, userId, path }: UpdateImageParams) {
+export async function updateImage({ image, userId, path }: { image: Record<string, unknown> & { _id?: string }; userId: string; path: string }) {
   try {
     await connectToDatabase();
 
-    const imageToUpdate = await Image.findById(image._id);
+    const imageToUpdate = await Image.findById(image._id as string);
 
-    if (!imageToUpdate || imageToUpdate.author.toHexString() !== userId) {
+    if (!imageToUpdate || typeof (imageToUpdate.author as any)?.toHexString !== 'function' || (imageToUpdate.author as any).toHexString() !== userId) {
       throw new Error("Unauthorized or image not found");
     }
 
-    const updatedImage = await Image.findByIdAndUpdate(
-      imageToUpdate._id,
-      image,
-      { new: true }
-    )
+    const { transformationURL, ...rest } = image as unknown as Record<string, unknown>;
+    const updatePayload: Record<string, unknown> = { ...rest };
+    if (typeof transformationURL === "string") {
+      updatePayload.transformationUrl = transformationURL;
+    }
+
+    const updatedImage = await Image.findByIdAndUpdate(imageToUpdate._id, updatePayload as any, { new: true });
 
     revalidatePath(path);
 
     return JSON.parse(JSON.stringify(updatedImage));
-  } catch (error) {
-    handleError(error)
+  } catch (error: unknown) {
+    handleError(error);
   }
 }
 
@@ -71,9 +87,9 @@ export async function deleteImage(imageId: string) {
 
     await Image.findByIdAndDelete(imageId);
   } catch (error) {
-    handleError(error)
-  } finally{
-    redirect('/')
+    handleError(error);
+  } finally {
+    redirect("/");
   }
 }
 
@@ -84,16 +100,16 @@ export async function getImageById(imageId: string) {
 
     const image = await populateUser(Image.findById(imageId));
 
-    if(!image) throw new Error("Image not found");
+    if (!image) throw new Error("Image not found");
 
     return JSON.parse(JSON.stringify(image));
   } catch (error) {
-    handleError(error)
+    handleError(error);
   }
 }
 
 // GET IMAGES
-export async function getAllImages({ limit = 9, page = 1, searchQuery = '' }: {
+export async function getAllImages({ limit = 9, page = 1, searchQuery = "" }: {
   limit?: number;
   page: number;
   searchQuery?: string;
@@ -106,47 +122,45 @@ export async function getAllImages({ limit = 9, page = 1, searchQuery = '' }: {
       api_key: process.env.CLOUDINARY_API_KEY,
       api_secret: process.env.CLOUDINARY_API_SECRET,
       secure: true,
-    })
+    });
 
-    let expression = 'folder=imaginify';
+    let expression = "folder=imaginify";
 
     if (searchQuery) {
-      expression += ` AND ${searchQuery}`
+      expression += ` AND ${searchQuery}`;
     }
 
-    const { resources } = await cloudinary.search
-      .expression(expression)
-      .execute();
+    const execResult = await cloudinary.search.expression(expression).execute();
+    const { resources } = (execResult as { resources?: { public_id: string }[] }) || { resources: [] };
 
-    const resourceIds = resources.map((resource: any) => resource.public_id);
+    const resourceIds = (resources || []).map((resource) => resource.public_id);
 
-    let query = {};
+    let query: Record<string, unknown> = {};
 
-    if(searchQuery) {
+    if (searchQuery) {
       query = {
         publicId: {
-          $in: resourceIds
-        }
-      }
+          $in: resourceIds,
+        },
+      };
     }
 
-    const skipAmount = (Number(page) -1) * limit;
+    const skipAmount = (Number(page) - 1) * limit;
 
-    const images = await populateUser(Image.find(query))
+    const images = await populateUser(Image.find(query as Record<string, unknown>))
       .sort({ updatedAt: -1 })
       .skip(skipAmount)
-      .limit(limit);
-    
-    const totalImages = await Image.find(query).countDocuments();
+      .limit(limit as number);
+    const totalImages = await Image.find(query as Record<string, unknown>).countDocuments();
     const savedImages = await Image.find().countDocuments();
 
     return {
       data: JSON.parse(JSON.stringify(images)),
-      totalPage: Math.ceil(totalImages / limit),
+      totalPage: Math.ceil(totalImages / (limit as number)),
       savedImages,
-    }
+    };
   } catch (error) {
-    handleError(error)
+    handleError(error);
   }
 }
 
@@ -165,16 +179,16 @@ export async function getUserImages({
 
     const skipAmount = (Number(page) - 1) * limit;
 
-    const images = await populateUser(Image.find({ author: userId }))
+    const images = await populateUser(Image.find({ author: userId } as Record<string, unknown>))
       .sort({ updatedAt: -1 })
       .skip(skipAmount)
-      .limit(limit);
+      .limit(limit as number);
 
-    const totalImages = await Image.find({ author: userId }).countDocuments();
+    const totalImages = await Image.find({ author: userId } as Record<string, unknown>).countDocuments();
 
     return {
       data: JSON.parse(JSON.stringify(images)),
-      totalPages: Math.ceil(totalImages / limit),
+      totalPages: Math.ceil(totalImages / (limit as number)),
     };
   } catch (error) {
     handleError(error);
