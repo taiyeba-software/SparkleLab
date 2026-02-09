@@ -14,6 +14,7 @@ import {
 import { transformationTypes } from "@/constants";
 import { IImage } from "@/lib/database/models/image.model";
 import { formUrlQuery } from "@/lib/utils";
+import { TransformationTypeKey } from "@/types";
 
 import { Button } from "../ui/button";
 
@@ -114,7 +115,7 @@ const Card = ({ image }: { image: IImage }) => {
           </p>
           <Image
             src={`/assets/icons/${
-              transformationTypes[
+              (transformationTypes as Record<TransformationTypeKey, { icon: string }>)[
                 image.transformationType as TransformationTypeKey
               ].icon
             }`}

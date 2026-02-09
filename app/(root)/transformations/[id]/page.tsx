@@ -1,6 +1,4 @@
-//import { auth } from "@clerk/nextjs";
 import { auth } from "@clerk/nextjs/server";
-
 import Image from "next/image";
 import Link from "next/link";
 
@@ -11,9 +9,16 @@ import { getImageById } from "@/lib/actions/image.actions";
 import { getImageSize } from "@/lib/utils";
 import { DeleteConfirmation } from "@/components/shared/DeleteConfirmation";
 
-const ImageDetails = async ({ params: { id } }: SearchParamProps) => {
-  const { userId } = await auth();
+interface PageProps {
+  params: Promise<{
+    id: string;
+  }>;
+}
 
+const ImageDetails = async ({ params }: PageProps) => {
+  const { id } = await params;
+
+  const { userId } = await auth();
   const image = await getImageById(id);
 
   return (
@@ -23,7 +28,7 @@ const ImageDetails = async ({ params: { id } }: SearchParamProps) => {
       <section className="mt-5 flex flex-wrap gap-4">
         <div className="p-14-medium md:p-16-medium flex gap-2">
           <p className="text-dark-600">Transformation:</p>
-          <p className=" capitalize text-purple-400">
+          <p className="capitalize text-purple-400">
             {image.transformationType}
           </p>
         </div>
@@ -31,9 +36,9 @@ const ImageDetails = async ({ params: { id } }: SearchParamProps) => {
         {image.prompt && (
           <>
             <p className="hidden text-dark-400/50 md:block">&#x25CF;</p>
-            <div className="p-14-medium md:p-16-medium flex gap-2 ">
+            <div className="p-14-medium md:p-16-medium flex gap-2">
               <p className="text-dark-600">Prompt:</p>
-              <p className=" capitalize text-purple-400">{image.prompt}</p>
+              <p className="capitalize text-purple-400">{image.prompt}</p>
             </div>
           </>
         )}
@@ -43,7 +48,7 @@ const ImageDetails = async ({ params: { id } }: SearchParamProps) => {
             <p className="hidden text-dark-400/50 md:block">&#x25CF;</p>
             <div className="p-14-medium md:p-16-medium flex gap-2">
               <p className="text-dark-600">Color:</p>
-              <p className=" capitalize text-purple-400">{image.color}</p>
+              <p className="capitalize text-purple-400">{image.color}</p>
             </div>
           </>
         )}
@@ -53,7 +58,9 @@ const ImageDetails = async ({ params: { id } }: SearchParamProps) => {
             <p className="hidden text-dark-400/50 md:block">&#x25CF;</p>
             <div className="p-14-medium md:p-16-medium flex gap-2">
               <p className="text-dark-600">Aspect Ratio:</p>
-              <p className=" capitalize text-purple-400">{image.aspectRatio}</p>
+              <p className="capitalize text-purple-400">
+                {image.aspectRatio}
+              </p>
             </div>
           </>
         )}
@@ -61,7 +68,7 @@ const ImageDetails = async ({ params: { id } }: SearchParamProps) => {
 
       <section className="mt-10 border-t border-dark-400/15">
         <div className="transformation-grid">
-          {/* MEDIA UPLOADER */}
+          {/* ORIGINAL IMAGE */}
           <div className="flex flex-col gap-4">
             <h3 className="h3-bold text-dark-600">Original</h3>
 
@@ -69,7 +76,7 @@ const ImageDetails = async ({ params: { id } }: SearchParamProps) => {
               width={getImageSize(image.transformationType, image, "width")}
               height={getImageSize(image.transformationType, image, "height")}
               src={image.secureURL}
-              alt="image"
+              alt={image.title}
               className="transformation-original_image"
             />
           </div>
@@ -81,7 +88,7 @@ const ImageDetails = async ({ params: { id } }: SearchParamProps) => {
             title={image.title}
             isTransforming={false}
             transformationConfig={image.config}
-            hasDownload={true}
+            hasDownload
           />
         </div>
 

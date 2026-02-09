@@ -8,6 +8,7 @@ import { debounce, download, getImageSize } from "@/lib/utils";
 import { updateCredits } from "@/lib/actions/user.actions";
 
 import type { TransformedImageProps } from "@/types";
+import type { IImage } from "@/lib/database/models/image.model";
 
 const TransformedImage = ({
   image,
@@ -28,9 +29,9 @@ const TransformedImage = ({
     const url =
       bgRemovedUrl ||
       getCldImageUrl({
-        src: image?.publicId,
-        width: image?.width,
-        height: image?.height,
+        src: image!.publicId,
+        width: image!.width,
+        height: image!.height,
         ...transformationConfig,
       });
 

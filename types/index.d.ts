@@ -26,7 +26,7 @@ declare type AddImageParams = {
     transformationType: string;
     width: number;
     height: number;
-    config: any;
+    config: Record<string, unknown>;
     secureURL: string;
     transformationURL: string;
     aspectRatio: string | undefined;
@@ -45,7 +45,7 @@ declare type UpdateImageParams = {
     transformationType: string;
     width: number;
     height: number;
-    config: any;
+    config: Record<string, unknown>;
     secureURL: string;
     transformationURL: string;
     aspectRatio: string | undefined;
@@ -120,8 +120,8 @@ declare type RemoveUrlQueryParams = {
 };
 
 declare type SearchParamProps = {
-  params: { id: string; type: TransformationTypeKey };
-  searchParams: { [key: string]: string | string[] | undefined };
+  params: Promise<{ id: string; type: TransformationTypeKey }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 };
 
 declare type TransformationFormProps = {
@@ -134,7 +134,7 @@ declare type TransformationFormProps = {
 };
 
 declare type TransformedImageProps = {
-  image: any;
+  image: IImage | null;
   type: string;
   title: string;
   transformationConfig: Transformations | null;

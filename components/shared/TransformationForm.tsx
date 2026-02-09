@@ -24,10 +24,10 @@ import { InsufficientCreditsModal } from "./InsufficientCreditsModal";
 
 import { deepMergeObjects } from "@/lib/utils";
 import { addImage, updateImage } from "@/lib/actions/image.actions";
-import { Transformations, IImage } from "@/types";
+import { IImage, TransformationTypeKey } from "@/types";
 
 /* -------------------------------------------------------------------------- */
-/* FORM SCHEMA                                                                 */
+/* FORM SCHEMA                                                                  */
 /* -------------------------------------------------------------------------- */
 
 export const formSchema = z.object({
@@ -41,20 +41,20 @@ export const formSchema = z.object({
 });
 
 /* -------------------------------------------------------------------------- */
-/* TYPES                                                                       */
+/* TYPES                                                                        */
 /* -------------------------------------------------------------------------- */
 
 interface TransformationFormProps {
   action: "Add" | "Update";
   data?: IImage | null;
   userId: string;
-  type: string;
+  type: TransformationTypeKey;
   creditBalance: number;
-  config?: Transformations | null;
+  config?: Record<string, unknown> | null;
 }
 
 /* -------------------------------------------------------------------------- */
-/* COMPONENT                                                                   */
+/* COMPONENT                                                                    */
 /* -------------------------------------------------------------------------- */
 
 const TransformationForm = ({
@@ -66,13 +66,13 @@ const TransformationForm = ({
   config = null,
 }: TransformationFormProps) => {
   const router = useRouter();
-  const transformationType = transformationTypes[type as keyof typeof transformationTypes];
+  const transformationType = transformationTypes[type];
 
   const [image, setImage] = useState<IImage | null>(data);
   const [newTransformation, setNewTransformation] =
-    useState<Transformations | null>(null);
+    useState<Record<string, unknown> | null>(null);
   const [transformationConfig, setTransformationConfig] =
-    useState<Transformations | null>(config);
+    useState<Record<string, unknown> | null>(config);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isTransforming, setIsTransforming] = useState(false);
@@ -96,7 +96,7 @@ const TransformationForm = ({
   });
 
   /* ------------------------------------------------------------------------ */
-  /* SUBMIT                                                                   */
+  /* SUBMIT                                                                    */
   /* ------------------------------------------------------------------------ */
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
@@ -112,7 +112,7 @@ const TransformationForm = ({
               src: image.publicId,
               width: image.width,
               height: image.height,
-              ...transformationConfig,
+              ...(transformationConfig ?? {}),
             });
 
       const payload = {
@@ -144,7 +144,10 @@ const TransformationForm = ({
 
       if (action === "Update" && data?._id) {
         const updated = await updateImage({
-          image: ({ ...payload, _id: data._id } as any),
+          image: {
+            ...payload,
+            _id: String(data._id),
+          },
           userId,
           path: `/transformations/${String(data._id)}`,
         });
@@ -153,15 +156,15 @@ const TransformationForm = ({
           router.push(`/transformations/${updated._id}`);
         }
       }
-    } catch (err) {
-      console.error(err);
+    } catch (error) {
+      console.error(error);
     } finally {
       setIsSubmitting(false);
     }
   }
 
   /* ------------------------------------------------------------------------ */
-  /* TRANSFORMATION ACTIVATION                                                 */
+  /* TRANSFORMATION LOGIC                                                      */
   /* ------------------------------------------------------------------------ */
 
   useEffect(() => {
@@ -183,7 +186,7 @@ const TransformationForm = ({
     if (!newTransformation) return;
 
     setIsTransforming(true);
-    setTransformationConfig((prev: Transformations | null) =>
+    setTransformationConfig((prev) =>
       deepMergeObjects(newTransformation, prev ?? {})
     );
 
@@ -192,13 +195,15 @@ const TransformationForm = ({
   };
 
   /* ------------------------------------------------------------------------ */
-  /* JSX                                                                      */
+  /* JSX                                                                       */
   /* ------------------------------------------------------------------------ */
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        {creditBalance < Math.abs(creditFee) && <InsufficientCreditsModal />}
+        {creditBalance < Math.abs(creditFee) && (
+          <InsufficientCreditsModal />
+        )}
 
         <CustomField
           control={form.control}
@@ -240,6 +245,22 @@ const TransformationForm = ({
           </div>
         )}
 
+        {/* publicId is always passed as a string */}
+        {/* <CustomField
+          control={form.control}
+          name="publicId"
+          render={({ field }) => (
+            <MediaUploader
+              onValueChange={field.onChange}
+              setImage={setImage}
+              publicId={field.value ?? ""}
+              image={image}
+              type={type}
+              userId={userId}
+            />
+          )}
+        /> */}
+
         <CustomField
           control={form.control}
           name="publicId"
@@ -247,13 +268,14 @@ const TransformationForm = ({
             <MediaUploader
               onValueChange={field.onChange}
               setImage={setImage}
-              publicId={field.value}
+              publicId={String(field.value ?? "")}
               image={image}
               type={type}
               userId={userId}
             />
           )}
         />
+
 
         <TransformedImage
           image={image}
@@ -274,10 +296,7 @@ const TransformationForm = ({
           Apply Transformation
         </Button>
 
-        <Button
-          type="submit"
-          disabled={isSubmitting}
-        >
+        <Button type="submit" disabled={isSubmitting}>
           Save Image
         </Button>
       </form>
