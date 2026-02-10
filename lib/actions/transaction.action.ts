@@ -7,10 +7,28 @@ import { connectToDatabase } from '../database/mongoose';
 import Transaction from '../database/models/transaction.model';
 import { updateCredits } from './user.actions';
 
+type CheckoutTransactionParams = {
+  amount: number | string;
+  plan: string;
+  credits: number;
+  buyerId: string;
+};
+
+type CreateTransactionParams = {
+  stripeId: string;
+  amount: number;
+  credits: number;
+  plan: string;
+  buyerId: string;
+  createdAt: Date;
+};
+
 export async function checkoutCredits(transaction: CheckoutTransactionParams) {
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
   const amount = Number(transaction.amount) * 100;
+
+    
 
   const session = await stripe.checkout.sessions.create({
     line_items: [
