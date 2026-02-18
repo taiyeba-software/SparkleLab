@@ -21,22 +21,39 @@ const Sidebar = () => {
           <SignedIn>
             <ul className="sidebar-nav_elements">
               {navLinks.slice(0, 6).map((link) => {
-                const isActive = link.route === pathname
+                const isDisabled = link.enabled === false
+                const isActive = !isDisabled && link.route === pathname
 
                 return (
-                  <li key={link.route} className={`sidebar-nav_element group ${
-                    isActive ? 'bg-purple-gradient text-white' : 'text-gray-700'
-                  }`}>
-                    <Link className="sidebar-link" href={link.route}>
-                      <Image 
-                        src={link.icon}
-                        alt="logo"
-                        width={24}
-                        height={24}
-                        className={`${isActive && 'brightness-200'}`}
-                      />
-                      {link.label}
-                    </Link>
+                  <li
+                    key={link.route}
+                    className={`sidebar-nav_element group ${
+                      isActive ? 'bg-purple-gradient text-white' : 'text-gray-700'
+                    } ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    title={isDisabled ? 'Coming soon' : undefined}
+                  >
+                    {isDisabled ? (
+                      <div className="sidebar-link" aria-disabled="true">
+                        <Image 
+                          src={link.icon}
+                          alt="logo"
+                          width={24}
+                          height={24}
+                        />
+                        {link.label}
+                      </div>
+                    ) : (
+                      <Link className="sidebar-link" href={link.route}>
+                        <Image 
+                          src={link.icon}
+                          alt="logo"
+                          width={24}
+                          height={24}
+                          className={`${isActive && 'brightness-200'}`}
+                        />
+                        {link.label}
+                      </Link>
+                    )}
                   </li>
                 )
               })}
@@ -45,22 +62,39 @@ const Sidebar = () => {
 
             <ul className="sidebar-nav_elements">
               {navLinks.slice(6).map((link) => {
-                const isActive = link.route === pathname
+                const isDisabled = link.enabled === false
+                const isActive = !isDisabled && link.route === pathname
 
                 return (
-                  <li key={link.route} className={`sidebar-nav_element group ${
-                    isActive ? 'bg-purple-gradient text-white' : 'text-gray-700'
-                  }`}>
-                    <Link className="sidebar-link" href={link.route}>
-                      <Image 
-                        src={link.icon}
-                        alt="logo"
-                        width={24}
-                        height={24}
-                        className={`${isActive && 'brightness-200'}`}
-                      />
-                      {link.label}
-                    </Link>
+                  <li
+                    key={link.route}
+                    className={`sidebar-nav_element group ${
+                      isActive ? 'bg-purple-gradient text-white' : 'text-gray-700'
+                    } ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    title={isDisabled ? 'Coming soon' : undefined}
+                  >
+                    {isDisabled ? (
+                      <div className="sidebar-link" aria-disabled="true">
+                        <Image 
+                          src={link.icon}
+                          alt="logo"
+                          width={24}
+                          height={24}
+                        />
+                        {link.label}
+                      </div>
+                    ) : (
+                      <Link className="sidebar-link" href={link.route}>
+                        <Image 
+                          src={link.icon}
+                          alt="logo"
+                          width={24}
+                          height={24}
+                          className={`${isActive && 'brightness-200'}`}
+                        />
+                        {link.label}
+                      </Link>
+                    )}
                   </li>
                 )
               })}

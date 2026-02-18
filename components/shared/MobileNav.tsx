@@ -47,22 +47,36 @@ const MobileNav = () => {
 
               <ul className="header-nav_elements">
               {navLinks.map((link) => {
-                const isActive = link.route === pathname
+                const isDisabled = link.enabled === false
+                const isActive = !isDisabled && link.route === pathname
 
                 return (
                   <li 
-                    className={`${isActive && 'gradient-text'} p-18 flex whitespace-nowrap text-dark-700`}
+                    className={`${isActive && 'gradient-text'} p-18 flex whitespace-nowrap text-dark-700 ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
                     key={link.route}
+                    title={isDisabled ? 'Coming soon' : undefined}
                     >
-                    <Link className="sidebar-link cursor-pointer" href={link.route}>
-                      <Image 
-                        src={link.icon}
-                        alt="logo"
-                        width={24}
-                        height={24}
-                      />
-                      {link.label}
-                    </Link>
+                    {isDisabled ? (
+                      <div className="sidebar-link" aria-disabled="true">
+                        <Image 
+                          src={link.icon}
+                          alt="logo"
+                          width={24}
+                          height={24}
+                        />
+                        {link.label}
+                      </div>
+                    ) : (
+                      <Link className="sidebar-link cursor-pointer" href={link.route}>
+                        <Image 
+                          src={link.icon}
+                          alt="logo"
+                          width={24}
+                          height={24}
+                        />
+                        {link.label}
+                      </Link>
+                    )}
                   </li>
                 )
               })}
