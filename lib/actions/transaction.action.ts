@@ -28,7 +28,7 @@ export async function checkoutCredits(transaction: CheckoutTransactionParams) {
 
   const amount = Number(transaction.amount) * 100;
 
-    
+                                               
 
   const session = await stripe.checkout.sessions.create({
     line_items: [
