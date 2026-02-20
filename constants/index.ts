@@ -6,6 +6,12 @@ export const navLinks = [
     enabled: true,
   },
   {
+    label: "Background Remove",
+    route: "/transformations/add/removeBackground",
+    icon: "/assets/icons/camera.svg",
+    enabled: true,
+  },
+  {
     label: "Image Restore",
     route: "/transformations/add/restore",
     icon: "/assets/icons/image.svg",
@@ -29,12 +35,7 @@ export const navLinks = [
     icon: "/assets/icons/filter.svg",
     enabled: false,
   },
-  {
-    label: "Background Remove",
-    route: "/transformations/add/removeBackground",
-    icon: "/assets/icons/camera.svg",
-    enabled: true,
-  },
+  
   {
     label: "Profile",
     route: "/profile",
