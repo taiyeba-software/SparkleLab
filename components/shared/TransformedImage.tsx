@@ -81,7 +81,15 @@ const TransformedImage = ({
   /* ---------------- RENDER ---------------- */
 
   if (!image?.publicId || !transformationConfig) {
-    return <div className="transformed-placeholder">Transformed Image</div>;
+    return (
+      <div className="flex flex-col gap-4">
+        <div className="flex-between">
+          <h3 className="h3-bold text-dark-600">Transformed</h3>
+        </div>
+
+        <div className="transformed-placeholder">Transformed Image</div>
+      </div>
+    );
   }
 
   return (

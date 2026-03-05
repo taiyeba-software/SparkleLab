@@ -261,44 +261,47 @@ const TransformationForm = ({
           )}
         /> */}
 
-        <CustomField
-          control={form.control}
-          name="publicId"
-          render={({ field }) => (
-            <MediaUploader
-              onValueChange={field.onChange}
-              setImage={setImage}
-              publicId={String(field.value ?? "")}
-              image={image}
-              type={type}
-              userId={userId}
-            />
-          )}
-        />
+        <div className="media-uploader-field">
+          <CustomField
+            control={form.control}
+            name="publicId"
+            render={({ field }) => (
+              <MediaUploader
+                onValueChange={field.onChange}
+                setImage={setImage}
+                publicId={String(field.value ?? "")}
+                image={image}
+                type={type}
+                userId={userId}
+              />
+            )}
+          />
 
+          <TransformedImage
+            image={image}
+            type={type}
+            title={form.getValues().title}
+            transformationConfig={transformationConfig}
+            isTransforming={isTransforming}
+            setIsTransforming={setIsTransforming}
+            setTransformedImageUrl={setTransformedImageUrl}
+            userId={userId}
+          />
+        </div>
 
-        <TransformedImage
-          image={image}
-          type={type}
-          title={form.getValues().title}
-          transformationConfig={transformationConfig}
-          isTransforming={isTransforming}
-          setIsTransforming={setIsTransforming}
-          setTransformedImageUrl={setTransformedImageUrl}
-          userId={userId}
-        />
+        <div className="flex flex-wrap gap-3">
+          <Button
+            type="button"
+            disabled={isTransforming || !newTransformation}
+            onClick={onTransformHandler}
+          >
+            Apply Transformation
+          </Button>
 
-        <Button
-          type="button"
-          disabled={isTransforming || !newTransformation}
-          onClick={onTransformHandler}
-        >
-          Apply Transformation
-        </Button>
-
-        <Button type="submit" disabled={isSubmitting}>
-          Save Image
-        </Button>
+          <Button type="submit" disabled={isSubmitting}>
+            Save Image
+          </Button>
+        </div>
       </form>
     </Form>
   );
